@@ -210,12 +210,31 @@ export const useTransactor = (
 
       const errorPattern = /Contract (.*?)"}/;
       const match = errorPattern.exec(error.message);
-      const message = match ? match[1] : error.message;
+      let message = match ? match[1] : error.message;
 
-      console.error("⚡️ ~ file: useTransactor.tsx ~ error", message);
+      const errorStr = JSON.stringify(error).toLowerCase();
+      if (errorStr.includes('insufficient balance')) {
+          throw new Error('Balance not enough to perform this transaction');
+      }
+     if (errorStr.includes('Contract not deployed')) {
+          throw new Error('Address not deployed');
+      }
+      if (errorStr.includes('u256_sub overflow')){
+        message = "Insufficent Balance";
+        notification.error(message);
+        throw error;
+         //throw new Error('Insufficent Balance');
+      }
+      throw message; // Re-lanzar otros errores
+
+
+      //console.error("⚡️ ~ file: useTransactor.tsx ~ error", message);
+
+
 
       notification.error(message);
       throw error;
+    }
     }
 
     return transactionHash;
